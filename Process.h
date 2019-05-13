@@ -23,6 +23,11 @@ public:
         //complete for cmd
         //complete for upTime
         //complete for cpu
+        this->cmd = ProcessParser::getCmd(pid);
+        this->cpu = ProcessParser::getCpuPercent(pid);
+        this->mem = ProcessParser::getVmSize(pid);
+        this->upTime = ProcessParser::getProcUpTime(pid);
+
     }
     void setPid(int pid);
     string getPid()const;
