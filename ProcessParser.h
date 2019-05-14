@@ -104,7 +104,7 @@ std::string ProcessParser::getVmSize(std::string pid){
 };
 
 //CPU Usage
-std::string getCpuPercent(std::string pid){
+std::string ProcessParser::getCpuPercent(std::string pid){
     std::string line;
     std::ifstream stream;
     //fetching raw data from below path
@@ -150,7 +150,7 @@ long int ProcessParser::getSysUpTime(){
 }
 
 //Process up time
-std::string getProcUpTime(std::string pid){
+std::string ProcessParser::getProcUpTime(std::string pid){
     
     std::string line;
     std:ifstream stream;
@@ -169,8 +169,8 @@ std::string getProcUpTime(std::string pid){
 std::string ProcessParser::getProcUser(std::string pid){
     std::string line;
     std::ifstream stream;
-    std::string uid("Uid:");
-    std::string result;
+    std::string uid= "Uid:";
+    std::string result = "";
 
     //fetch stream from /proc/pid/status
     Util::getStream((Path::basePath() + pid + Path::statusPath()),stream);
@@ -183,23 +183,37 @@ std::string ProcessParser::getProcUser(std::string pid){
             std::istream_iterator<string> beg(buf),end;
             std::vector<string> values(beg,end);
             result = values[1];
-            uid = ("x:" + result);
-            //fetch stream from /etc/passwd
-            Util::getStream("/etc/passwd",stream);
-            while(std::getline(stream, line)){
-                //Search for the updated uid line
-                if(line.find(uid) != std::string::npos){
-                    //abstract the username
-                    result = line.substr(0,line.find(":"));
-                    return result;
-                }
-            }
+            break;
         }
     }
-    return "";
+    
+    std::ifstream stream2;
+    Util::getStream(("/etc/passwd"),stream2);
+    uid = "x:" + result;
+    // Searching for name of the user with selected UID
+    while (std::getline(stream2, line)) {
+        if (line.find(uid) != std::string::npos) {
+            result = line.substr(0, line.find(":"));
+            return result;
+        }
+    }
+    return "";    
+            //fetch stream from /etc/passwd
+ //           Util::getStream("/etc/passwd",stream);
+ //           uid = "x:" + result;
+            
+//            while(std::getline(stream, line)){
+                //Search for the updated uid line
+//                if(line.find(uid) != std::string::npos){
+                    //abstract the username
+ //                  result = line.substr(0,line.find(":"));
+ //                   return result;
+//                }
+//            }
+//    return "";
 }
 
-vector<std::string> ProcessParser::getSysCpuPercent(std::string coreNumber = ""){
+vector<std::string> ProcessParser::getSysCpuPercent(std::string coreNumber){
     std::string line;
     std::ifstream stream;
 
@@ -333,7 +347,6 @@ int ProcessParser::getTotalNumberOfProcesses(){
             std::istringstream buf(line);
             std::istream_iterator<string> beg(buf), end;
             std::vector<string> values(beg,end);
-
             return stoi(values[1]);
         }
     }
@@ -343,7 +356,7 @@ int ProcessParser::getTotalNumberOfProcesses(){
 int ProcessParser::getNumberOfRunningProcesses(){
     std::string line;
     std::ifstream stream;
-    std::string name = "procs running";
+    std::string name = "procs_running";
 
     Util::getStream((Path::basePath() + Path::statPath()), stream);
     while(std::getline(stream, line)){
@@ -351,8 +364,7 @@ int ProcessParser::getNumberOfRunningProcesses(){
             std::istringstream buf(line);
             std::istream_iterator<string> beg(buf), end;
             std::vector<string> values(beg, end);
-            
-            return stoi(values[2]);
+            return stoi(values[1]); 
         }
     }
     return 0;
@@ -362,16 +374,14 @@ std::string ProcessParser::getOSName(){
     std::string line;
     std::ifstream stream;
 
-    std::string name = "PRETTY NAME=";
+    std::string name = "PRETTY_NAME=";
     Util::getStream(("/etc/os-release"),stream);
-    while(std::getline(stream, line)){
-        if(line.compare(0,name.size(),name) == 0){
-            std::istringstream buf(line);
-            std::istream_iterator<string> beg(buf), end;
-            vector<string> values(beg, end);
-            std::string result = values[1].substr((values[1].find("=")+1));
-            result.erase(std::remove(result.begin(), result.end(), '"'), result.end());
-            return result;
+    
+    while (std::getline(stream, line)) {
+        if (line.compare(0, name.size(), name) == 0) {
+              string result = line.substr(line.find("=")+1);
+              result.erase(std::remove(result.begin(), result.end(), '"'), result.end());
+              return result;
         }
     }
     return "";
@@ -388,3 +398,12 @@ std::string ProcessParser::PrintCpuStats(std::vector<std::string> values1, std::
     return s;
 }
 
+bool ProcessParser::isPidExisting(std::string pid){
+    
+    for(auto _pid : getPidList()){
+        if(_pid == pid)
+         return true;
+    }
+    
+    return false;
+}
