@@ -19,6 +19,14 @@ sudo apt-get install libncurses5-dev libncursesw5-dev
 ```
 g++ -std="c++17" main.cpp -lncurses
 ./a.out
+(
+compile use:
+cd build 
+cmake ..
+make
+run project:
+../bin/CppND-System-Monitor
+for this restruct one)
 ```
 5. In case of error that looks like the following: 
 ```
