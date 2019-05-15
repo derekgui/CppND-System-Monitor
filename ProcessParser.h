@@ -24,6 +24,7 @@ using namespace std;
 class ProcessParser{
 private:
     std::ifstream stream;
+
     public:
     static std::string getCmd(std::string pid);
     static vector<std::string> getPidList();
@@ -45,6 +46,11 @@ private:
 };
 
 // TODO: Define all of the above functions below:
+std::vector<string> splitByWhiteSpace(std::string stringToSplit){
+    std::istringstream buf(stringToSplit);
+    std::istream_iterator<string> beg(buf),end;
+    return std::vector<string> (beg,end);
+}
 //cmd
 std::string ProcessParser::getCmd(std::string pid){
     std::string result;
@@ -92,9 +98,7 @@ std::string ProcessParser::getVmSize(std::string pid){
     while(std::getline(stream, line)){
         if(line.compare(0,name.size(),name) == 0){
             //Searching string line on ws for values using sstream
-            std::istringstream buf(line);
-            std::istream_iterator<string> beg(buf), end;
-            std::vector<string> values(beg, end);
+            std::vector<string> values = splitByWhiteSpace(line);
             //converts KB to GB
             result = (stof(values[1])/float(1024));
             break;
@@ -112,9 +116,7 @@ std::string ProcessParser::getCpuPercent(std::string pid){
     std::getline(stream, line);
     
     //slicing the string obj to a vector of string obj
-    std::istringstream buf(line);
-    std::istream_iterator<string> beg(buf), end;
-    std::vector<string> values(beg, end);
+    std::vector<string> values = splitByWhiteSpace(line);
 
     //fetching all uptime in system clock tick
     float utime = stof(ProcessParser::getProcUpTime(pid));
@@ -141,9 +143,7 @@ long int ProcessParser::getSysUpTime(){
 
     Util::getStream((Path::basePath() + Path::upTimePath()),stream);
     std::getline(stream, line);
-    std::istringstream buf(line);
-    std::istream_iterator<string> beg(buf) ,end;
-    std::vector<string> values(beg, end);
+    std::vector<string> values = splitByWhiteSpace(line);
 
     return stoi(values[0]);
 
@@ -158,9 +158,7 @@ std::string ProcessParser::getProcUpTime(std::string pid){
     Util::getStream((Path::basePath() + pid + "/" + Path::statPath()),stream);
     std::getline(stream, line);
 
-    std::istringstream buf(line);
-    std::istream_iterator<std::string> beg(buf), end;
-    std::vector<std::string> values(beg,end);
+    std::vector<string> values = splitByWhiteSpace(line);
 
     return to_string(float(stof(values[13])/sysconf(_SC_CLK_TCK)));
 
@@ -179,9 +177,7 @@ std::string ProcessParser::getProcUser(std::string pid){
     {   
         //Search for Uid: line
         if(line.compare(0,uid.size(),uid) == 0){
-            std::istringstream buf(line);
-            std::istream_iterator<string> beg(buf),end;
-            std::vector<string> values(beg,end);
+            std::vector<string> values = splitByWhiteSpace(line);
             result = values[1];
             break;
         }
@@ -198,19 +194,6 @@ std::string ProcessParser::getProcUser(std::string pid){
         }
     }
     return "";    
-            //fetch stream from /etc/passwd
- //           Util::getStream("/etc/passwd",stream);
- //           uid = "x:" + result;
-            
-//            while(std::getline(stream, line)){
-                //Search for the updated uid line
-//                if(line.find(uid) != std::string::npos){
-                    //abstract the username
- //                  result = line.substr(0,line.find(":"));
- //                   return result;
-//                }
-//            }
-//    return "";
 }
 
 vector<std::string> ProcessParser::getSysCpuPercent(std::string coreNumber){
@@ -221,9 +204,7 @@ vector<std::string> ProcessParser::getSysCpuPercent(std::string coreNumber){
     Util::getStream((Path::basePath() + Path::statPath()), stream);
     while(std::getline(stream,line)){
         if(line.compare(0,name.size(),name) == 0){
-            std::istringstream buf(line);
-            std::istream_iterator<string> beg(buf), end;
-            std::vector<string> values(beg, end);
+            std::vector<string> values = splitByWhiteSpace(line);
             return values;
         }
     }
@@ -263,9 +244,7 @@ float ProcessParser::getSysRamPercent(){
             break;
         for(int i = 0; i < names.size(); i++){
         if(line.compare(0,names[i].size(),names[i]) == 0){
-            std::istringstream buf(line);
-            std::istream_iterator<string> beg(buf), end;
-            std::vector<string> values(beg, end);
+            std::vector<string> values = splitByWhiteSpace(line);
             memStat[i] = stof(values[1]);
         }
         }
@@ -287,9 +266,7 @@ std::string ProcessParser::getSysKernelVersion(){
     Util::getStream((Path::basePath() + Path::versionPath()), stream);
     while(std::getline(stream, line)){
         if(line.compare(0,name.size(), name) == 0){
-            std::istringstream buf(line);
-            std::istream_iterator<string> beg(buf), end;
-            std::vector<string> values(beg, end);
+            std::vector<string> values = splitByWhiteSpace(line);
             return values[2];
         }
     }
@@ -306,9 +283,7 @@ int ProcessParser::getTotalThreads(){
         Util::getStream(Path::basePath() + pid + Path::statusPath(),stream);
         while(std::getline(stream, line)){
             if(line.compare(0,name.size(), name) == 0){
-                std::istringstream buf(line);
-                std::istream_iterator<string> beg(buf), end;
-                std::vector<string> values(beg, end);
+                std::vector<string> values = splitByWhiteSpace(line);
                 result += stoi(values[1]);
                 break;
             }
@@ -326,10 +301,7 @@ int ProcessParser::getNumberOfCores(){
     Util::getStream((Path::basePath() + "cpuinfo"),stream);
     while(std::getline(stream, line)){
         if(line.compare(0,name.size(),name) == 0){
-            std::istringstream buf(line);
-            std::istream_iterator<string> beg(buf), end;
-            vector<string> values(beg, end);
-            
+            std::vector<string> values = splitByWhiteSpace(line);
             return stoi(values[3]);
         }
     }
@@ -344,9 +316,7 @@ int ProcessParser::getTotalNumberOfProcesses(){
     Util::getStream((Path::basePath()+ Path::statPath()),stream);
     while(std::getline(stream, line)){
         if(line.compare(0,name.size(), name) == 0){
-            std::istringstream buf(line);
-            std::istream_iterator<string> beg(buf), end;
-            std::vector<string> values(beg,end);
+            std::vector<string> values = splitByWhiteSpace(line);
             return stoi(values[1]);
         }
     }
@@ -361,9 +331,7 @@ int ProcessParser::getNumberOfRunningProcesses(){
     Util::getStream((Path::basePath() + Path::statPath()), stream);
     while(std::getline(stream, line)){
         if(line.compare(0, name.size(), name) == 0){
-            std::istringstream buf(line);
-            std::istream_iterator<string> beg(buf), end;
-            std::vector<string> values(beg, end);
+            std::vector<string> values = splitByWhiteSpace(line);
             return stoi(values[1]); 
         }
     }
